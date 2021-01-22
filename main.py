@@ -24,18 +24,18 @@ def main():
     global variableSource
     global variableDes
 
-    errorBox=Label(root, text="", fg="red", justify=LEFT)
+    errorBox=Label(root, text="", fg="red",font=("Arial",12,'bold'),wraplength=150, justify=LEFT)
     errorBox.pack()
-    errorBox.place(x=50,y=200)
+    errorBox.place(x=50,y=180)
 
     Label(root, text="Number of Nodes\nN>0 and N<20",font=("Arial",12,'bold'), justify=LEFT).place(x=50,y=50)
     textBox=Text(root,font=("Arial",12,'bold'), width=5, height=1)
     textBox.pack()
-    textBox.place(x=50,y=100)
+    textBox.place(x=60,y=100)
 
     buttonGenerate=Button(root,text="Initialize Graph", font=("Arial",12,'bold'), command=lambda: initilizeButton())
     buttonGenerate.pack()
-    buttonGenerate.place(x=50,y=150)
+    buttonGenerate.place(x=50,y=130)
 
     variableSource = StringVar(root)
     variableDes = StringVar(root)
@@ -117,17 +117,29 @@ def initGraph():
     graph["color"]=["black" for i in range(number_of_edges)]
 
 def drawGraph():
+
     # Simple integer weights on edges:
     pd.options.display.max_columns = 20
     #TODO dataframe kullanamya gerek var mı? her şeyi graph'tan verebilir miyiz?
     edges = pd.DataFrame({"source": graph["from"], "target": graph["to"], "weight": graph["weight"], "color": graph["color"]})
     G = nx.from_pandas_edgelist(edges, edge_attr=True)
-    pos=nx.circular_layout(G)
+
+    fixed_positions={}
+    count=1
+    for i in range(1,number_of_cities+1):
+        fixed_positions[count] = ((count//2)+1 if count%2==1 else count//2, 2 if count%2==1 else 1)
+        count +=1
+
+    print(fixed_positions)
+    fixed_nodes = fixed_positions.keys()
+    pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
     print(G[2][1]["color"])
     labels = nx.get_edge_attributes(G,'weight')
     nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
     nx.draw(G, pos= pos, with_labels=True, node_color='skyblue', node_size=500, edge_color=edges['color'], width=2.0, edge_cmap=plt.cm.Blues)
     plt.savefig('graph.png')
+
+
 
     """
     # Coloring specific edge
