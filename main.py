@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 from tkinter import *
 from PIL import Image, ImageTk
+from dijkstra import *
+import time
 
 
 root = Tk()                   # creates window
@@ -17,7 +19,7 @@ constant_diff = 3
 graph= {"from": [], "to": [], "weight": [], "color": []}
 
 edges_list={}
-shortest_path=[]
+path_nodes=[]
 
 def main():
     global textBox
@@ -25,26 +27,34 @@ def main():
     global variableSource
     global variableDes
     global img
+    global shortest_path
+    global shortest_distance
+
+    shortest_path=Label(root, text="", fg="red",font=("Arial",12,'bold'),wraplength=150, justify=LEFT)
+    shortest_distance=Label(root, text="", fg="red",font=("Arial",12,'bold'),wraplength=150, justify=LEFT)
+    shortest_path.pack()
+    shortest_distance.pack()
+    shortest_path.place(x=350,y=150)
+    shortest_distance.place(x=350,y=170)
 
     errorBox=Label(root, text="", fg="red",font=("Arial",12,'bold'),wraplength=150, justify=LEFT)
     errorBox.pack()
-    errorBox.place(x=50,y=180)
+    errorBox.place(x=50,y=170)
 
-    Label(root, text="Number of Nodes\nN>0 and N<20",font=("Arial",12,'bold'), justify=LEFT).place(x=50,y=50)
+    Label(root, text="Number of Nodes\nN>0 and N<20",font=("Arial",12,'bold'), justify=LEFT).place(x=50,y=40)
     textBox=Text(root,font=("Arial",12,'bold'), width=5, height=1)
     textBox.pack()
-    textBox.place(x=60,y=100)
+    textBox.place(x=60,y=90)
 
     buttonGenerate=Button(root,text="Initialize Graph", font=("Arial",12,'bold'), command=lambda: initilizeButton())
     buttonGenerate.pack()
-    buttonGenerate.place(x=50,y=130)
+    buttonGenerate.place(x=50,y=120)
 
     variableSource = StringVar(root)
     variableDes = StringVar(root)
 
     variableSource.trace('w', change_source)
     variableDes.trace('w', change_des)
-
 
     root.mainloop()
 
@@ -67,29 +77,64 @@ def initilizeButton():
             global variableSource
             global variableDes
 
-            Label(root, text="Source",font=("Arial",12,'bold'), justify=LEFT).place(x=300,y=50)
-            Label(root, text="Destionation",font=("Arial",12,'bold'), justify=LEFT).place(x=400,y=50)
-            Label(root, text="->",font=("Arial",16,'bold'), justify=LEFT).place(x=380,y=80)
+            Label(root, text="Source",font=("Arial",12,'bold'), justify=LEFT).place(x=300,y=40)
+            Label(root, text="Destionation",font=("Arial",12,'bold'), justify=LEFT).place(x=400,y=40)
+            Label(root, text="Shortest Path",font=("Arial",12,'bold'), justify=LEFT).place(x=200,y=150)
+            Label(root, text="Shortest Distance",font=("Arial",12,'bold'), justify=LEFT).place(x=200,y=170)
+            Label(root, text="->",font=("Arial",16,'bold'), justify=LEFT).place(x=380,y=70)
 
             OPTIONS = [*range(1,number_of_cities+1)]
             variableSource.set(OPTIONS[0]) # default value
             sourceMenu = OptionMenu(root, variableSource, *OPTIONS)
             sourceMenu.pack()
-            sourceMenu.place(x=310,y=80)
+            sourceMenu.place(x=310,y=70)
 
             variableDes.set(OPTIONS[1]) # default value
             destinationMenu = OptionMenu(root, variableDes, *OPTIONS)
             destinationMenu.pack()
-            destinationMenu.place(x=420,y=80)
+            destinationMenu.place(x=420,y=70)
 
             buttonPath=Button(root,text="Find Shortest Path", font=("Arial",12,'bold'), command=lambda: findShortestPath())
             buttonPath.pack()
-            buttonPath.place(x=315,y=120)
+            buttonPath.place(x=315,y=110)
+            drawGraph()
+            
+
+def drawGraph():
+    initGraph()
+    drawNetwork()
+    printImage()
 
 def findShortestPath():
-    initGraph()
     drawGraph()
-    printImage()
+    printAllSteps()
+
+
+def printAllSteps():
+    global graph, destination,source,path_nodes
+    path_nodes =[]
+    returned_path, returned_distance = Graph(graph).shortest_path(source, destination)
+    for i in range(len(returned_path)-1):
+        plt.clf()
+        # Coloring specific edge
+        a = returned_path[i]
+        b = returned_path[i+1]
+
+        if a not in path_nodes:
+            path_nodes.append(a)
+        if b not in path_nodes:
+            path_nodes.append(b)
+
+        graph["color"][edges_list.get(str(b if a>b else a)+"-"+str(a if a>b else b))] ="red"
+        G,pos,edges = drawInit()
+        nx.draw_networkx_nodes(G,pos=pos,nodelist=path_nodes,node_color="red", node_size=600)
+        nx.draw(G, pos= pos, with_labels=True , node_color='skyblue', node_size=400, edge_color=edges['color'], width=1.0, edge_cmap=plt.cm.Blues)
+        plt.savefig('graph.jpg')
+        printImage()
+        time.sleep(1)
+
+    shortest_path.config(text=str(' -> '.join(str(elem) for elem in list(returned_path))))
+    shortest_distance.config(text=returned_distance)
 
 
 def printImage():
@@ -114,13 +159,12 @@ def change_source(*args):
     source = source_
 
 def initGraph():
-    graph["from"] =[]
-    graph["to"] =[]
-    graph["weight"] =[]
-    graph["color"] =[]
+    plt.clf()
+    global graph, shortest_distance, shortest_path
+    shortest_distance.config(text="")
+    shortest_path.config(text="")
+    graph= {"from": [], "to": [], "weight": [], "color": []}
     number_of_edges=0;
-    # initialize edges
-    print(number_of_cities)
     for i in range(1,number_of_cities+1):
         for j in range(1,number_of_cities+1):
             if i != j and j>i and abs(i-j) <= constant_diff:
@@ -131,47 +175,27 @@ def initGraph():
                 number_of_edges+=1
     graph["color"]=["black" for i in range(number_of_edges)]
 
-def drawGraph():
-
-    # Simple integer weights on edges:
-    pd.options.display.max_columns = 20
-    #TODO dataframe kullanamya gerek var mı? her şeyi graph'tan verebilir miyiz?
+def drawInit():
     edges = pd.DataFrame({"source": graph["from"], "target": graph["to"], "weight": graph["weight"], "color": graph["color"]})
     G = nx.from_pandas_edgelist(edges, edge_attr=True)
+    fixed_positions =fixedPositions()
+    pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_positions.keys())
+    labels = nx.get_edge_attributes(G,'weight')
+    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
+    return G,pos,edges
 
+def drawNetwork():
+    G,pos,edges = drawInit()
+    nx.draw(G, pos= pos, with_labels=True, node_color='skyblue', node_size=400, edge_color=edges['color'], width=1.0, edge_cmap=plt.cm.Blues)
+    plt.savefig('graph.jpg')
+
+def fixedPositions():
     fixed_positions={}
     count=1
     for i in range(1,number_of_cities+1):
         fixed_positions[count] = ((count//2)+1 if count%2==1 else count//2, 2 if count%2==1 else 1)
         count +=1
-
-    print(fixed_positions)
-    fixed_nodes = fixed_positions.keys()
-    pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
-    print(G[2][1]["color"])
-    labels = nx.get_edge_attributes(G,'weight')
-    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels, font_size=8)
-    nx.draw(G, pos= pos, with_labels=True, node_color='skyblue', node_size=400, edge_color=edges['color'], width=1.0, edge_cmap=plt.cm.Blues)
-    plt.savefig('graph.jpg')
-
-
-
-    """
-    # Coloring specific edge
-    i=1
-    j=2
-    shortest_path.append(j if i>j else i)
-    shortest_path.append(i if i>j else j)
-    colorValues[edges_list.get(str(j if i>j else i)+"-"+str(i if i>j else j))] ="red"
-    edges = pd.DataFrame({"source": fromNode, "target": toNode, "weight": edgeWeights, "color": colorValues})
-    labels = nx.get_edge_attributes(G,'weight')
-    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
-    nx.draw_networkx_nodes(G,pos=pos,nodelist=shortest_path,node_color="red", node_size=600)
-    nx.draw(G, pos= pos, with_labels=True , node_color='skyblue', node_size=450, edge_color=edges['color'], width=2.0, edge_cmap=plt.cm.Blues)
-    plt.show()
-    """
+    return fixed_positions
 
 if __name__=='__main__':
     main()
-
-
