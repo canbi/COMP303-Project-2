@@ -3,10 +3,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from tkinter import *
+from PIL import Image, ImageTk
 
 
 root = Tk()                   # creates window
-root.geometry('800x600+400+300') #window width, height and starting position
+root.geometry('530x600+400+300') #window width, height and starting position
 root.title('Find Shortest Path')   #window title
 
 number_of_cities = 0
@@ -23,6 +24,7 @@ def main():
     global errorBox
     global variableSource
     global variableDes
+    global img
 
     errorBox=Label(root, text="", fg="red",font=("Arial",12,'bold'),wraplength=150, justify=LEFT)
     errorBox.pack()
@@ -42,6 +44,8 @@ def main():
 
     variableSource.trace('w', change_source)
     variableDes.trace('w', change_des)
+
+
     root.mainloop()
 
 
@@ -82,13 +86,20 @@ def initilizeButton():
             buttonPath.pack()
             buttonPath.place(x=315,y=120)
 
-
-
-
 def findShortestPath():
     initGraph()
     drawGraph()
+    printImage()
 
+
+def printImage():
+    global img, imagebox
+    plotimage = Image.open("graph.jpg")
+    plotimage.thumbnail((480, 360), Image.ANTIALIAS)
+    img = ImageTk.PhotoImage(plotimage)
+    imagebox = Label(root,image=img)
+    imagebox.pack()
+    imagebox.place(x=20,y=200)
 
 # on change dropdown value
 def change_des(*args):
@@ -103,6 +114,10 @@ def change_source(*args):
     source = source_
 
 def initGraph():
+    graph["from"] =[]
+    graph["to"] =[]
+    graph["weight"] =[]
+    graph["color"] =[]
     number_of_edges=0;
     # initialize edges
     print(number_of_cities)
@@ -135,9 +150,9 @@ def drawGraph():
     pos = nx.spring_layout(G,pos=fixed_positions, fixed = fixed_nodes)
     print(G[2][1]["color"])
     labels = nx.get_edge_attributes(G,'weight')
-    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
-    nx.draw(G, pos= pos, with_labels=True, node_color='skyblue', node_size=500, edge_color=edges['color'], width=2.0, edge_cmap=plt.cm.Blues)
-    plt.savefig('graph.png')
+    nx.draw_networkx_edge_labels(G,pos,edge_labels=labels, font_size=8)
+    nx.draw(G, pos= pos, with_labels=True, node_color='skyblue', node_size=400, edge_color=edges['color'], width=1.0, edge_cmap=plt.cm.Blues)
+    plt.savefig('graph.jpg')
 
 
 
@@ -152,7 +167,7 @@ def drawGraph():
     labels = nx.get_edge_attributes(G,'weight')
     nx.draw_networkx_edge_labels(G,pos,edge_labels=labels)
     nx.draw_networkx_nodes(G,pos=pos,nodelist=shortest_path,node_color="red", node_size=600)
-    nx.draw(G, pos= pos, with_labels=True , node_color='skyblue', node_size=500, edge_color=edges['color'], width=2.0, edge_cmap=plt.cm.Blues)
+    nx.draw(G, pos= pos, with_labels=True , node_color='skyblue', node_size=450, edge_color=edges['color'], width=2.0, edge_cmap=plt.cm.Blues)
     plt.show()
     """
 
