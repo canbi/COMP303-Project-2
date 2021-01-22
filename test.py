@@ -16,10 +16,10 @@ def main():
         end_time = datetime.datetime.now()
         result = end_time-start_time
         results.append(result.microseconds)
-        theory_time = i + (number_of_edges*math.log(i))
+        theory_time = (i+ number_of_edges)*math.log(i)
         theory_results.append(theory_time)
 
-    # Create some mock data
+    # Drawing a graph
     fig, ax1 = plt.subplots()
     color = 'tab:red'
     ax1.set_xlabel('N')
