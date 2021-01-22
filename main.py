@@ -34,27 +34,28 @@ def main():
     shortest_distance=Label(root, text="", fg="red",font=("Arial",12,'bold'),wraplength=150, justify=LEFT)
     shortest_path.pack()
     shortest_distance.pack()
-    shortest_path.place(x=350,y=150)
-    shortest_distance.place(x=350,y=170)
+    shortest_path.place(x=350,y=130)
+    shortest_distance.place(x=350,y=150)
 
     errorBox=Label(root, text="", fg="red",font=("Arial",12,'bold'),wraplength=150, justify=LEFT)
     errorBox.pack()
-    errorBox.place(x=50,y=170)
+    errorBox.place(x=50,y=130)
 
-    Label(root, text="Number of Nodes\nN>0 and N<20",font=("Arial",12,'bold'), justify=LEFT).place(x=50,y=40)
+    Label(root, text="Number of Nodes\nN>0 and N<20",font=("Arial",12,'bold'), justify=LEFT).place(x=50,y=20)
     textBox=Text(root,font=("Arial",12,'bold'), width=5, height=1)
     textBox.pack()
-    textBox.place(x=60,y=90)
+    textBox.place(x=60,y=70)
 
     buttonGenerate=Button(root,text="Initialize Graph", font=("Arial",12,'bold'), command=lambda: initilizeButton())
     buttonGenerate.pack()
-    buttonGenerate.place(x=50,y=120)
+    buttonGenerate.place(x=50,y=100)
 
     variableSource = StringVar(root)
     variableDes = StringVar(root)
 
     variableSource.trace('w', change_source)
     variableDes.trace('w', change_des)
+
 
     root.mainloop()
 
@@ -77,26 +78,26 @@ def initilizeButton():
             global variableSource
             global variableDes
 
-            Label(root, text="Source",font=("Arial",12,'bold'), justify=LEFT).place(x=300,y=40)
-            Label(root, text="Destionation",font=("Arial",12,'bold'), justify=LEFT).place(x=400,y=40)
-            Label(root, text="Shortest Path",font=("Arial",12,'bold'), justify=LEFT).place(x=200,y=150)
-            Label(root, text="Shortest Distance",font=("Arial",12,'bold'), justify=LEFT).place(x=200,y=170)
-            Label(root, text="->",font=("Arial",16,'bold'), justify=LEFT).place(x=380,y=70)
+            Label(root, text="Source",font=("Arial",12,'bold'), justify=LEFT).place(x=300,y=20)
+            Label(root, text="Destionation",font=("Arial",12,'bold'), justify=LEFT).place(x=400,y=20)
+            Label(root, text="Shortest Path",font=("Arial",12,'bold'), justify=LEFT).place(x=200,y=130)
+            Label(root, text="Shortest Distance",font=("Arial",12,'bold'), justify=LEFT).place(x=200,y=150)
+            Label(root, text="->",font=("Arial",16,'bold'), justify=LEFT).place(x=380,y=50)
 
             OPTIONS = [*range(1,number_of_cities+1)]
             variableSource.set(OPTIONS[0]) # default value
             sourceMenu = OptionMenu(root, variableSource, *OPTIONS)
             sourceMenu.pack()
-            sourceMenu.place(x=310,y=70)
+            sourceMenu.place(x=310,y=50)
 
             variableDes.set(OPTIONS[1]) # default value
             destinationMenu = OptionMenu(root, variableDes, *OPTIONS)
             destinationMenu.pack()
-            destinationMenu.place(x=420,y=70)
+            destinationMenu.place(x=420,y=50)
 
             buttonPath=Button(root,text="Find Shortest Path", font=("Arial",12,'bold'), command=lambda: findShortestPath())
             buttonPath.pack()
-            buttonPath.place(x=315,y=110)
+            buttonPath.place(x=315,y=90)
             drawGraph()
             
 
@@ -106,8 +107,15 @@ def drawGraph():
     printImage()
 
 def findShortestPath():
-    drawGraph()
-    printAllSteps()
+    global destination,source
+    errorBox.config(text="")
+    if destination == source:
+        errorBox.config(text="Source and Destination cannot be same")
+    else:
+        if destination < source:
+            destination,source = source,destination
+        drawGraph()
+        printAllSteps()
 
 
 def printAllSteps():
